@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoEstufa - Monitoramento Climático</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { color: #1b4332; text-align: center; }
+        .status-bar { text-align: center; margin-bottom: 20px; font-size: 0.9em; color: #555; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .valor { font-size: 2em; font-weight: bold; margin: 10px 0; color: #2d6a4f; }
+        .alerta { color: #d90429 !important; }
+        .controles { background: white; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button { padding: 12px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; color: white; }
+        .btn-auto { background: #2d6a4f; }
+        .btn-abrir { background: #0077b6; }
+        .btn-fechar { background: #d90429; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        th { background: #2d6a4f; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 EcoEstufa - Resiliência Climática</h1>
+        <div class="status-bar">Hardware: <strong id="conexao">Conectando...</strong> | Modo Atual: <strong id="modo">AUTO</strong></div>
+        <div class="grid">
+            <div class="card"><div>Temperatura</div><div class="valor" id="temp">-- °C</div></div>
+            <div class="card"><div>Umidade do Ar</div><div class="valor" id="umid">-- %</div></div>
+            <div class="card"><div>Clima / Chuva</div><div class="valor" id="chuva">Seco</div></div>
+            <div class="card"><div>Cobertura (Telhado)</div><div class="valor" id="telhado">ABERTO</div></div>
+            <div class="card"><div>Ventilação (Cooler)</div><div class="valor" id="cooler">DESLIGADO</div></div>
+        </div>
+        <div class="controles">
+            <h3>Controle Remoto de Emergência</h3>
+            <button class="btn-auto" onclick="enviarComando('AUTO')">Modo Automático</button>
+            <button class="btn-abrir" onclick="enviarComando('ABRIR')">Forçar Abrir Telhado</button>
+            <button class="btn-fechar" onclick="enviarComando('FECHAR')">Forçar Fechar Telhado</button>
+        </div>
+        <table>
+            <thead><tr><th>Data/Hora</th><th>Temp (°C)</th><th>Umid (%)</th><th>Chuva</th><th>Telhado</th></tr></thead>
+            <tbody id="tabela-historico"></tbody>
+        </table>
+    </div>
+    <script>
+        async function atualizarDados() {
+            const res = await fetch('/api/dados');
+            const data = await res.json();
+            const a = data.atual;
+            document.getElementById('conexao').innerText = a.status_conexao;
+            document.getElementById('modo').innerText = a.modo;
+            document.getElementById('temp').innerText = a.temp + ' °C';
+            document.getElementById('umid').innerText = a.umid + ' %';
+            const elChuva = document.getElementById('chuva');
+            elChuva.innerText = a.chuva ? 'CHUVA!' : 'Seco';
+            elChuva.className = a.chuva ? 'valor alerta' : 'valor';
+            const elTelhado = document.getElementById('telhado');
+            elTelhado.innerText = a.telhado;
+            elTelhado.className = a.telhado === 'FECHADO' ? 'valor alerta' : 'valor';
+            document.getElementById('cooler').innerText = a.cooler ? 'LIGADO' : 'DESLIGADO';
+            const tbody = document.getElementById('tabela-historico');
+            tbody.innerHTML = '';
+            data.historico.forEach(row => {
+                tbody.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}°C</td><td>${row[2]}%</td><td>${row[3] ? 'Sim' : 'Não'}</td><td>${row[4]}</td></tr>`;
+            });
+        }
+        async function enviarComando(cmd) {
+            await fetch('/api/comando', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comando: cmd }) });
+            atualizarDados();
+        }
+        setInterval(atualizarDados, 2000);
+        atualizarDados();
+    </script>
+</body>
+</html>
