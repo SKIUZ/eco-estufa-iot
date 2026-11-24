@@ -3,75 +3,968 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoEstufa - Monitoramento Climático</title>
+    <title>EcoEstufa — Monitoramento Climático</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        h1 { color: #1b4332; text-align: center; }
-        .status-bar { text-align: center; margin-bottom: 20px; font-size: 0.9em; color: #555; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
-        .valor { font-size: 2em; font-weight: bold; margin: 10px 0; color: #2d6a4f; }
-        .alerta { color: #d90429 !important; }
-        .controles { background: white; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        button { padding: 12px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; color: white; }
-        .btn-auto { background: #2d6a4f; }
-        .btn-abrir { background: #0077b6; }
-        .btn-fechar { background: #d90429; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
-        th { background: #2d6a4f; color: white; }
+        :root {
+            --bg: #f4f7f5;
+            --surface: #ffffff;
+            --surface-alt: #f8faf9;
+            --text: #14261c;
+            --text-muted: #5c7065;
+            --border: #e2eae5;
+            --primary: #1b7a4e;
+            --primary-soft: rgba(27, 122, 78, 0.12);
+            --blue: #0284c7;
+            --blue-soft: rgba(2, 132, 199, 0.12);
+            --danger: #dc2626;
+            --danger-soft: rgba(220, 38, 38, 0.12);
+            --warning: #d97706;
+            --warning-soft: rgba(217, 119, 6, 0.12);
+            --shadow: 0 4px 20px rgba(20, 38, 28, 0.05);
+            --radius: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0c1410;
+            --surface: #14201a;
+            --surface-alt: #1a2921;
+            --text: #edf5f0;
+            --text-muted: #93a89c;
+            --border: #24362c;
+            --primary: #34d399;
+            --primary-soft: rgba(52, 211, 153, 0.14);
+            --blue: #38bdf8;
+            --blue-soft: rgba(56, 189, 248, 0.14);
+            --danger: #f87171;
+            --danger-soft: rgba(248, 113, 113, 0.14);
+            --warning: #fbbf24;
+            --warning-soft: rgba(251, 191, 36, 0.14);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 24px 16px 48px;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            background: var(--surface);
+            padding: 18px 24px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: grid;
+            place-items: center;
+        }
+
+        .brand h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--warning);
+        }
+
+        .dot.online {
+            background: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-soft);
+            animation: pulse 2s infinite;
+        }
+
+        .dot.offline {
+            background: var(--danger);
+            box-shadow: 0 0 0 4px var(--danger-soft);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
+        .icon-btn {
+            background: var(--surface-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card.alerta-card {
+            border-color: var(--danger);
+            background: linear-gradient(180deg, var(--danger-soft) 0%, var(--surface) 45%);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .card-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--surface-alt);
+            color: var(--primary);
+            display: grid;
+            place-items: center;
+        }
+
+        .valor {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text);
+        }
+
+        .valor.ok { color: var(--primary); }
+        .valor.info { color: var(--blue); }
+        .valor.alerta { color: var(--danger); }
+
+        .card-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.6fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 820px) {
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-card {
+            background: var(--surface);
+            padding: 22px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .section-title h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface-alt);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ctrl-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            border-color: currentColor;
+        }
+
+        .ctrl-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .ctrl-btn .btn-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-btn .tag {
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .ctrl-btn.btn-auto.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .ctrl-btn.btn-abrir.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+        }
+
+        .ctrl-btn.btn-fechar.active {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+        }
+
+        .ctrl-btn.active .tag {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 210px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 14px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        .table-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--surface-alt);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 560px;
+            font-size: 0.88rem;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--surface-alt);
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--surface-alt);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+        }
+
+        .badge-ok { background: var(--primary-soft); color: var(--primary); }
+        .badge-danger { background: var(--danger-soft); color: var(--danger); }
+        .badge-info { background: var(--blue-soft); color: var(--blue); }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px;
+            color: var(--text-muted);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            background: var(--text);
+            color: var(--bg);
+            font-size: 0.88rem;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transform: translateY(12px);
+            pointer-events: none;
+            transition: all 0.25s ease;
+            z-index: 100;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌱 EcoEstufa - Resiliência Climática</h1>
-        <div class="status-bar">Hardware: <strong id="conexao">Conectando...</strong> | Modo Atual: <strong id="modo">AUTO</strong></div>
-        <div class="grid">
-            <div class="card"><div>Temperatura</div><div class="valor" id="temp">-- °C</div></div>
-            <div class="card"><div>Umidade do Ar</div><div class="valor" id="umid">-- %</div></div>
-            <div class="card"><div>Clima / Chuva</div><div class="valor" id="chuva">Seco</div></div>
-            <div class="card"><div>Cobertura (Telhado)</div><div class="valor" id="telhado">ABERTO</div></div>
-            <div class="card"><div>Ventilação (Cooler)</div><div class="valor" id="cooler">DESLIGADO</div></div>
-        </div>
-        <div class="controles">
-            <h3>Controle Remoto de Emergência</h3>
-            <button class="btn-auto" onclick="enviarComando('AUTO')">Modo Automático</button>
-            <button class="btn-abrir" onclick="enviarComando('ABRIR')">Forçar Abrir Telhado</button>
-            <button class="btn-fechar" onclick="enviarComando('FECHAR')">Forçar Fechar Telhado</button>
-        </div>
-        <table>
-            <thead><tr><th>Data/Hora</th><th>Temp (°C)</th><th>Umid (%)</th><th>Chuva</th><th>Telhado</th></tr></thead>
-            <tbody id="tabela-historico"></tbody>
-        </table>
+        <header>
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>EcoEstufa</h1>
+                    <p>Monitoramento & Resiliência Climática</p>
+                </div>
+            </div>
+
+            <div class="header-meta">
+                <div class="pill">
+                    <span class="dot" id="status-dot"></span>
+                    <span id="conexao">Conectando...</span>
+                </div>
+                <div class="pill">
+                    Modo: <strong id="modo">AUTO</strong>
+                </div>
+                <div class="pill" id="relogio-tempo-real">--/--/---- --:--:--</div>
+                <button class="icon-btn" id="btn-theme" title="Alternar tema" aria-label="Alternar tema">
+                    <svg id="icon-theme" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <section class="grid">
+            <div class="card" id="card-temp">
+                <div class="card-header">
+                    <span>Temperatura</span>
+                    <div class="card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="valor" id="temp">-- °C</div>
+                <div class="card-sub" id="temp-sub">Sensor interno da estufa</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span>Umidade do Ar</span>
+                    <div class="card-icon" style="color: var(--blue);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="valor info" id="umid">-- %</div>
+                <div class="card-sub">Umidade relativa atual</div>
+            </div>
+
+            <div class="card" id="card-chuva">
+                <div class="card-header">
+                    <span>Clima / Chuva</span>
+                    <div class="card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+                            <path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="valor ok" id="chuva">Seco</div>
+                <div class="card-sub" id="chuva-sub">Sem precipitação detectada</div>
+            </div>
+
+            <div class="card" id="card-telhado">
+                <div class="card-header">
+                    <span>Cobertura</span>
+                    <div class="card-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="valor ok" id="telhado">ABERTO</div>
+                <div class="card-sub" id="telhado-sub">Posição atual do teto</div>
+            </div>
+        </section>
+
+        <section class="panel-grid">
+            <div class="section-card">
+                <div class="section-title">
+                    <h2>Controle de Emergência</h2>
+                </div>
+                <div class="btn-group">
+                    <button class="ctrl-btn btn-auto" id="btn-auto" onclick="enviarComando('AUTO')">
+                        <span class="btn-left">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/>
+                            </svg>
+                            Modo Automático
+                        </span>
+                        <span class="tag">AUTO</span>
+                    </button>
+
+                    <button class="ctrl-btn btn-abrir" id="btn-abrir" onclick="enviarComando('ABRIR')">
+                        <span class="btn-left">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m18 15-6-6-6 6"/>
+                            </svg>
+                            Forçar Abrir Telhado
+                        </span>
+                        <span class="tag">MANUAL</span>
+                    </button>
+
+                    <button class="ctrl-btn btn-fechar" id="btn-fechar" onclick="enviarComando('FECHAR')">
+                        <span class="btn-left">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                            Forçar Fechar Telhado
+                        </span>
+                        <span class="tag">EMERGÊNCIA</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">
+                    <h2>Tendência Recente</h2>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="legend-swatch" style="background: #1b7a4e;"></span>
+                            <span>Temp (°C)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-swatch" style="background: #0284c7;"></span>
+                            <span>Umid (%)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="grafico"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <div class="section-title">
+                <h2>Histórico de Leituras</h2>
+                <div class="table-actions">
+                    <button class="btn-outline" onclick="exportarCSV()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Exportar CSV
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Horário</th>
+                            <th>Temperatura</th>
+                            <th>Umidade</th>
+                            <th>Chuva</th>
+                            <th>Telhado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-historico">
+                        <tr>
+                            <td colspan="5" class="empty-state">Aguardando leituras do hardware...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
     <script>
-        async function atualizarDados() {
-            const res = await fetch('/api/dados');
-            const data = await res.json();
-            const a = data.atual;
-            document.getElementById('conexao').innerText = a.status_conexao;
-            document.getElementById('modo').innerText = a.modo;
-            document.getElementById('temp').innerText = a.temp + ' °C';
-            document.getElementById('umid').innerText = a.umid + ' %';
-            const elChuva = document.getElementById('chuva');
-            elChuva.innerText = a.chuva ? 'CHUVA!' : 'Seco';
-            elChuva.className = a.chuva ? 'valor alerta' : 'valor';
-            const elTelhado = document.getElementById('telhado');
-            elTelhado.innerText = a.telhado;
-            elTelhado.className = a.telhado === 'FECHADO' ? 'valor alerta' : 'valor';
-            document.getElementById('cooler').innerText = a.cooler ? 'LIGADO' : 'DESLIGADO';
-            const tbody = document.getElementById('tabela-historico');
-            tbody.innerHTML = '';
-            data.historico.forEach(row => {
-                tbody.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}°C</td><td>${row[2]}%</td><td>${row[3] ? 'Sim' : 'Não'}</td><td>${row[4]}</td></tr>`;
+        let historicoAtual = [];
+        let timerAtualizacao = null;
+        let toastTimer = null;
+
+        const root = document.documentElement;
+        const btnTheme = document.getElementById('btn-theme');
+        const iconTheme = document.getElementById('icon-theme');
+
+        function atualizarRelogio() {
+            const agora = new Date();
+            const data = agora.toLocaleDateString('pt-BR');
+            const hora = agora.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
             });
+            document.getElementById('relogio-tempo-real').textContent = `${data} ${hora}`;
         }
+
+        setInterval(atualizarRelogio, 1000);
+        atualizarRelogio();
+
+        function temperaturaValida(valor) {
+            const num = Number(valor);
+            return Number.isFinite(num) && num >= -40 && num <= 100;
+        }
+
+        function aplicarTema(tema) {
+            root.setAttribute('data-theme', tema);
+            localStorage.setItem('ecoestufa-theme', tema);
+            iconTheme.innerHTML = tema === 'dark'
+                ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>'
+                : '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+            desenharGrafico(historicoAtual);
+        }
+
+        const temaSalvo = localStorage.getItem('ecoestufa-theme') ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        aplicarTema(temaSalvo);
+
+        btnTheme.addEventListener('click', () => {
+            aplicarTema(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        });
+
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensagem;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+
+        function atualizarBotoesAtivos(modo, telhado) {
+            const btnAuto = document.getElementById('btn-auto');
+            const btnAbrir = document.getElementById('btn-abrir');
+            const btnFechar = document.getElementById('btn-fechar');
+
+            btnAuto.classList.remove('active');
+            btnAbrir.classList.remove('active');
+            btnFechar.classList.remove('active');
+
+            const modoUpper = String(modo || '').toUpperCase();
+            if (modoUpper === 'AUTO') {
+                btnAuto.classList.add('active');
+            } else if (telhado === 'ABERTO') {
+                btnAbrir.classList.add('active');
+            } else if (telhado === 'FECHADO') {
+                btnFechar.classList.add('active');
+            }
+        }
+
+        function desenharGrafico(historico) {
+            const canvas = document.getElementById('grafico');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width;
+            const h = rect.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const styles = getComputedStyle(root);
+            const borderColor = styles.getPropertyValue('--border').trim();
+            const mutedColor = styles.getPropertyValue('--text-muted').trim();
+            const tempColor = styles.getPropertyValue('--primary').trim();
+            const umidColor = styles.getPropertyValue('--blue').trim();
+
+            if (!historico || historico.length < 2) {
+                ctx.fillStyle = mutedColor;
+                ctx.font = '500 13px "Google Sans", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Aguardando dados suficientes para o gráfico...', w / 2, h / 2);
+                return;
+            }
+
+            const dados = [...historico].slice(0, 20).reverse();
+            const temps = dados.map(r => temperaturaValida(r[1]) ? Number(r[1]) : null);
+            const umids = dados.map(r => Number(r[2]) || 0);
+
+            const pad = { top: 16, right: 16, bottom: 26, left: 34 };
+            const plotW = w - pad.left - pad.right;
+            const plotH = h - pad.top - pad.bottom;
+
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1;
+            ctx.fillStyle = mutedColor;
+            ctx.font = '500 11px "Google Sans", sans-serif';
+            ctx.textAlign = 'right';
+
+            for (let i = 0; i <= 4; i++) {
+                const y = pad.top + (plotH / 4) * i;
+                const val = Math.round(100 - i * 25);
+                ctx.beginPath();
+                ctx.moveTo(pad.left, y);
+                ctx.lineTo(w - pad.right, y);
+                ctx.stroke();
+                ctx.fillText(val, pad.left - 8, y + 4);
+            }
+
+            function plotLinha(valores, cor, maxVal) {
+                ctx.beginPath();
+                let desenhando = false;
+                valores.forEach((v, i) => {
+                    if (v === null) {
+                        desenhando = false;
+                        return;
+                    }
+                    const x = pad.left + (plotW / (valores.length - 1)) * i;
+                    const y = pad.top + plotH - (Math.min(Math.max(v, 0), maxVal) / maxVal) * plotH;
+                    if (!desenhando) {
+                        ctx.moveTo(x, y);
+                        desenhando = true;
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.strokeStyle = cor;
+                ctx.lineWidth = 2.5;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            plotLinha(umids, umidColor, 100);
+            plotLinha(temps, tempColor, 100);
+
+            ctx.fillStyle = mutedColor;
+            ctx.textAlign = 'center';
+            const primeiro = String(dados[0][0] || '').split(' ').pop();
+            const ultimo = String(dados[dados.length - 1][0] || '').split(' ').pop();
+            ctx.fillText(primeiro, pad.left + 16, h - 6);
+            ctx.fillText(ultimo, w - pad.right - 16, h - 6);
+        }
+
+        async function atualizarDados() {
+            clearTimeout(timerAtualizacao);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 4000);
+
+            try {
+                const res = await fetch('/api/dados', { signal: controller.signal });
+                if (!res.ok) throw new Error('Falha HTTP');
+
+                const data = await res.json();
+                const a = data.atual || {};
+
+                const dot = document.getElementById('status-dot');
+                const elConexao = document.getElementById('conexao');
+                const online = String(a.status_conexao || '').toLowerCase().includes('conect') ||
+                    String(a.status_conexao || '').toLowerCase().includes('online') ||
+                    Boolean(a.status_conexao);
+
+                elConexao.textContent = a.status_conexao || 'Online';
+                dot.className = online ? 'dot online' : 'dot offline';
+
+                document.getElementById('modo').textContent = a.modo || 'AUTO';
+
+                const elTemp = document.getElementById('temp');
+                const cardTemp = document.getElementById('card-temp');
+                const subTemp = document.getElementById('temp-sub');
+                if (temperaturaValida(a.temp)) {
+                    elTemp.textContent = `${a.temp} °C`;
+                    elTemp.className = 'valor';
+                    cardTemp.classList.remove('alerta-card');
+                    subTemp.textContent = 'Sensor interno da estufa';
+                } else {
+                    elTemp.textContent = 'Erro';
+                    elTemp.className = 'valor alerta';
+                    cardTemp.classList.add('alerta-card');
+                    subTemp.textContent = `Leitura inválida (${a.temp ?? '--'})`;
+                }
+
+                document.getElementById('umid').textContent = `${a.umid ?? '--'} %`;
+
+                const elChuva = document.getElementById('chuva');
+                const cardChuva = document.getElementById('card-chuva');
+                const subChuva = document.getElementById('chuva-sub');
+                elChuva.textContent = a.chuva ? 'CHUVA!' : 'Seco';
+                elChuva.className = a.chuva ? 'valor alerta' : 'valor ok';
+                cardChuva.classList.toggle('alerta-card', Boolean(a.chuva));
+                subChuva.textContent = a.chuva ? 'Precipitação ativa no sensor' : 'Sem precipitação detectada';
+
+                const elTelhado = document.getElementById('telhado');
+                const cardTelhado = document.getElementById('card-telhado');
+                const subTelhado = document.getElementById('telhado-sub');
+                const fechado = a.telhado === 'FECHADO';
+                elTelhado.textContent = a.telhado || '--';
+                elTelhado.className = fechado ? 'valor alerta' : 'valor ok';
+                cardTelhado.classList.toggle('alerta-card', fechado);
+                subTelhado.textContent = fechado ? 'Cobertura recolhida / protegida' : 'Ventilação natural ativa';
+
+                atualizarBotoesAtivos(a.modo, a.telhado);
+
+                historicoAtual = Array.isArray(data.historico) ? data.historico : [];
+                const tbody = document.getElementById('tabela-historico');
+
+                if (historicoAtual.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum registro no histórico ainda.</td></tr>';
+                } else {
+                    tbody.innerHTML = historicoAtual.map(row => {
+                        const tempTexto = temperaturaValida(row[1])
+                            ? `<strong>${row[1]} °C</strong>`
+                            : `<span class="badge badge-danger">Erro (${row[1]})</span>`;
+                        return `
+                            <tr>
+                                <td>${row[0]}</td>
+                                <td>${tempTexto}</td>
+                                <td>${row[2]} %</td>
+                                <td>
+                                    <span class="badge ${row[3] ? 'badge-danger' : 'badge-ok'}">
+                                        ${row[3] ? 'Chuva' : 'Seco'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge ${row[4] === 'FECHADO' ? 'badge-danger' : 'badge-info'}">
+                                        ${row[4]}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                desenharGrafico(historicoAtual);
+            } catch (err) {
+                document.getElementById('conexao').textContent = 'Desconectado';
+                document.getElementById('status-dot').className = 'dot offline';
+            } finally {
+                clearTimeout(timeout);
+                timerAtualizacao = setTimeout(atualizarDados, 2000);
+            }
+        }
+
         async function enviarComando(cmd) {
-            await fetch('/api/comando', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comando: cmd }) });
-            atualizarDados();
+            const botoes = document.querySelectorAll('.ctrl-btn');
+            botoes.forEach(b => b.disabled = true);
+
+            try {
+                const res = await fetch('/api/comando', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comando: cmd })
+                });
+
+                if (!res.ok) throw new Error('Erro ao enviar comando');
+                mostrarToast(`Comando "${cmd}" enviado com sucesso.`);
+                await atualizarDados();
+            } catch (err) {
+                mostrarToast('Erro de comunicação ao enviar comando.');
+            } finally {
+                botoes.forEach(b => b.disabled = false);
+            }
         }
-        setInterval(atualizarDados, 2000);
+
+        function exportarCSV() {
+            if (!historicoAtual.length) {
+                mostrarToast('Não há dados no histórico para exportar.');
+                return;
+            }
+
+            const cabecalho = ['Horario', 'Temperatura (C)', 'Umidade (%)', 'Chuva', 'Telhado'];
+            const linhas = historicoAtual.map(r => [
+                r[0],
+                temperaturaValida(r[1]) ? r[1] : 'Erro',
+                r[2],
+                r[3] ? 'Sim' : 'Nao',
+                r[4]
+            ].join(','));
+
+            const csv = [cabecalho.join(','), ...linhas].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ecoestufa-historico-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            mostrarToast('Histórico exportado em CSV.');
+        }
+
+        window.addEventListener('resize', () => desenharGrafico(historicoAtual));
         atualizarDados();
     </script>
 </body>
