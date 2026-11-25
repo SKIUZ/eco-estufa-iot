@@ -131,7 +131,7 @@ def enviar_comando():
 
     cmd = request.json.get("comando")
 
-    if cmd not in ["ABRIR", "FECHAR"]:
+    if cmd not in ["ABRIR", "FECHAR", "AUTO"]:
         return jsonify({
             "sucesso": False,
             "erro": "Comando inválido"
